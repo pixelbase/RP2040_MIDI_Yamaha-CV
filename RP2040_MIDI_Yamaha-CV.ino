@@ -21,6 +21,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#include <LCD_I2C.h>
+#include <MIDI.h>
+#include <RP2040_PWM.h>
 
 #define VCO1_PIN 12
 #define VCO2_PIN 14
@@ -28,15 +31,16 @@ SOFTWARE.
 #define TRG2_PIN 17
 
 #define PWM_FREQ 50000
-
 #define INIT_DUTY_CYCLE 25.0
 // "tone" at boot
-
 #define INIT_MIDI_CH 1
 
-#include <LCD_I2C.h>
-#include <MIDI.h>
-#include <RP2040_PWM.h>
+// I2C default pins in Arduino MBED core for Raspberry Pi Pico is GP6, GP7.
+// Default in Pico docs is GP4,GP5. At time of writing not changeable with API. LCD_I2C lcd(0x27, 16, 2); 
+LCD_I2C lcd(0x27, 16, 2); // Setup 16x2 LCD display on I2C bus.
+
+// Create and bind the MIDI interface to the default HW Serial port (UART0 on GP0,GP1)
+MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
 
 enum synthmode {
   MONO, // VCO 1 & 2 identical, Trig 1 & 2 identical
