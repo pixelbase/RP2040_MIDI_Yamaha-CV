@@ -49,114 +49,116 @@ enum synthmode {
   QUAD, // Individual MIDI channel per output (VCO1,TRG1,VCO2,TRG2)
   SPLIT // Split keyboard at C3 - left = VCO/Trig 1, right = VCO/Trig 2
 };
-
 synthmode mode; // global mode state
 int ch; // global base MIDI channel
 
 class Voltage {
-public:
-  Voltage(int pin) {
-    _pin = pin;
-  };
+  public:
+    Voltage(int pin) {
+      _pin = pin;
+    };
 
-  void init(float init_duty) {
-    PWM_Instance = new RP2040_PWM(_pin, PWM_FREQ, init_duty);
-    PWM_Instance->setPWM();
-  };
+    void init(float init_duty) {
+      PWM_Instance = new RP2040_PWM(_pin, PWM_FREQ, init_duty);
+      PWM_Instance->setPWM();
+    };
 
-  void key(int key) {
-    PWM_Instance->setPWM(_pin, PWM_FREQ, _duty(key), true);
-  };
+    void key(int key) {
+      PWM_Instance->setPWM(_pin, PWM_FREQ, _duty(key), true);
+    };
 
-  void duty(float duty) {
-    PWM_Instance->setPWM(_pin, PWM_FREQ, duty, true);
-  };
-// TODO: void bend() {};
+    void duty(float duty) {
+      PWM_Instance->setPWM(_pin, PWM_FREQ, duty, true);
+    };
+  // TODO: void bend() {};
 
-private:
-  int _pin;
-  RP2040_PWM* PWM_Instance;
+  private:
+    int _pin;
+    RP2040_PWM* PWM_Instance;
 
-  float _duty(int key) {
-  // get duty cycle from MIDI key code    
-    if (key < 36) {key = 36;};  // below lowest defined key: 36 (duties[0])
-    if (key > 36+37-1) {key = 36+36;}; // above highest defined key: 73 (duties[36])
-    return duties[key-36];
-  };
+    float _duty(int key) {
+    // get duty cycle from MIDI key code    
+      if (key < 36) {key = 36;};  // below lowest defined key: 36 (duties[0])
+      if (key > 36+37-1) {key = 36+36;}; // above highest defined key: 73 (duties[36])
+      return duties[key-36];
+    };
 
-//TODO: move to file on flash? - check if exists and then read it?
+    //TODO: move to file on flash? - check if exists and then read it?
 
-  // TUNING - these are PWM duty cycles mapping to control voltages.
-  // C1 = 0.250V, C2 = 0.5V, C3 = 1V, C4 = 2V (full range of the CS-15 keyboard)
-  // I measured with a multimeter on the CV-out, then tuned the filtered PWM signal to match.
-  float duties[37] = {
-    8.94942,  // C1
-    9.437705, // C#1
-    9.994659, // D1
-    10.55924, // D#1
-    11.16960, // E1
-    11.82574, // F1
-    12.51239, // F#1
-    13.19905, // G1
-    13.96200, // G#1
-    14.77073, // A1
-    15.59472, // A#1
-    16.52552, // B1
-    17.39528,
-    18.41763,
-    19.43999,
-    20.55390,
-    21.71358,
-    22.93430,
-    24.24658,
-    25.61989,
-    27.02372,
-    28.53437,
-    30.13656,
-    31.79980,
-    17.39528,
-    18.41763,
-    19.43999,
-    20.55390,
-    21.71358,
-    22.93430,
-    24.24658,
-    25.61989,
-    27.02372,
-    28.53437,
-    30.13656,
-    31.79980,
-    1.882963,
-  };
+    // TUNING - these are PWM duty cycles mapping to control voltages.
+    // C1 = 0.250V, C2 = 0.5V, C3 = 1V, C4 = 2V (full range of the CS-15 keyboard)
+    // I measured with a multimeter on the CV-out, then tuned the filtered PWM signal to match.
+    float duties[37] = {
+      8.94942,  // C1
+      9.437705, // C#1
+      9.994659, // D1
+      10.55924, // D#1
+      11.16960, // E1
+      11.82574, // F1
+      12.51239, // F#1
+      13.19905, // G1
+      13.96200, // G#1
+      14.77073, // A1
+      15.59472, // A#1
+      16.52552, // B1
+      17.39528,
+      18.41763,
+      19.43999,
+      20.55390,
+      21.71358,
+      22.93430,
+      24.24658,
+      25.61989,
+      27.02372,
+      28.53437,
+      30.13656,
+      31.79980,
+      17.39528,
+      18.41763,
+      19.43999,
+      20.55390,
+      21.71358,
+      22.93430,
+      24.24658,
+      25.61989,
+      27.02372,
+      28.53437,
+      30.13656,
+      31.79980,
+      1.882963,
+    };
 };
 
 class Trigger {
-public:
-  Trigger(int pin) {
-    _pin = pin;
-  };
+  public:
+    Trigger(int pin) {
+      _pin = pin;
+    };
 
-  void init() {
-    pinMode(_pin, OUTPUT);
-    digitalWrite(_pin, HIGH); // trig by pulling TRGx_PINs low
-  };
+    void init() {
+      pinMode(_pin, OUTPUT);
+      digitalWrite(_pin, HIGH); // trig by pulling TRGx_PINs low
+    };
 
-  void on() {
-    digitalWrite(_pin, LOW);
-  };
+    void on() {
+      digitalWrite(_pin, LOW);
+    };
 
-  void off() {
-    digitalWrite(_pin, HIGH);
-  };
+    void off() {
+      digitalWrite(_pin, HIGH);
+    };
 
-private:
-  int _pin;
+  private:
+    int _pin;
 };
 
 Trigger trg1 = Trigger(TRG1_PIN);
 Trigger trg2 = Trigger(TRG2_PIN);
 Voltage vco1 = Voltage(VCO1_PIN);
 Voltage vco2 = Voltage(VCO2_PIN);
+
+int keys_down = 0;
+bool slide_mode = true;
 
 void setup() {
   // for MIDI debugging without having to use Serial or display (which contains delays)
@@ -177,7 +179,7 @@ void setup() {
 
   MIDI.begin(MIDI_CHANNEL_OMNI);  // Listen to all incoming messages
 
-  delay(4000);
+  delay(3000);
 
   ch = INIT_MIDI_CH; // default MIDI channel
   setMode(MONO); // default mode
@@ -189,23 +191,25 @@ void loop() {
 }
 
 void noteOn_MONO(byte ch, byte key, byte vel) {
-  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-  digitalWrite(TRG1_PIN, LOW);
   // only if NO NOTE down? - One version with no trg off until last key?
-  trg1.off();
-  trg2.off();
-  delay(10);
-  trg1.on();
-  trg2.on();
+  if (!slide_mode || keys_down == 0) {
+    trg1.off();
+    trg2.off();
+    delay(10);
+    trg1.on();
+    trg2.on();
+  };
+  keys_down++;
   vco1.key(key);
   vco2.key(key);
 };
 
 void noteOff_MONO(byte ch, byte key, byte vel) {
-  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-  digitalWrite(TRG1_PIN, HIGH);
-  trg1.off();
-  trg2.off();
+  if (keys_down == 1) { // don't kill last note in legato
+    trg1.off();
+    trg2.off();
+  };
+  if (keys_down > 0) keys_down--;
 };
 
 void setMode(synthmode newmode) {

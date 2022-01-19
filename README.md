@@ -20,4 +20,6 @@ https://github.com/blackhack/LCD_I2C
 https://github.com/FortySevenEffects/arduino_midi_library
 
 https://github.com/khoih-prog/RP2040_PWM
-To generate stable output voltage, a high frequency PWM signal is required
+To generate stable output voltage, a high frequency PWM signal is required.
+I was unable to use pins GP14-GP15 with this library, only one at a time would enable.
+With GP12+14 on separate slices, everything worked. In my MicroPython prototype I was using 14+15.
